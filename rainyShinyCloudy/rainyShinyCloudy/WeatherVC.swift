@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class WeatherVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
     @IBOutlet weak var dateLbl: UILabel!
     
@@ -22,11 +22,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     @IBOutlet weak var tableView: UITableView!
     
+    var currentWeather = CurrentWeather()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.delegate = self
         tableView.dataSource = self
+        
+//        currentWeather.downloadWeatherDetail
 
     }
 
