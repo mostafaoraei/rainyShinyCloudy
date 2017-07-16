@@ -49,15 +49,41 @@ class CurrentWeather {
 
     var currentTemp : Double {
         if _currentTemp == nil {
-            _currentTemp = 0
+            _currentTemp = 0.0
         }
         return _currentTemp
     }
     
     func downloadWeatherDetail (completed : DownloadCompleted) {
+        // that fucking lesson for me is dont use "" in URL
+        
         let currentWeatherUrl = URL(string: current_Weather_URL)!
-        Alamofire.request( currentWeatherUrl).responseJSON { response in
+        Alamofire.request(currentWeatherUrl).responseJSON { response in
+            let result = response.result
             print(response)
+            if let dict = result.value as? Dictionary<String, AnyObject> {
+                
+                if let name = dict["name"] as? String {
+                    self._cityName = name.capitalized
+                    print(self._cityName)
+                }
+                
+                if let weather = dict["weather"] as? [Dictionary<String, AnyObject>]{
+                    if let main = weather[0]["main"] as? String{
+                        self._weatherType = main.capitalized
+                        print(self._weatherType)
+
+                    }
+                
+                    if let main = dict["main"] as? Dictionary<String, AnyObject> {
+                        if let currentTemp = main["temp"] as? Double{
+                            let kelvinToCelsius = currentTemp - 273.15
+                            self._currentTemp = kelvinToCelsius
+                            print(self._currentTemp)
+                        }
+                    }
+                }
+            }
         }
         
             completed()

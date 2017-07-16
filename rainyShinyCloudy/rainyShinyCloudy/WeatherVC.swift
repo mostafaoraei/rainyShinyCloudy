@@ -22,15 +22,18 @@ class WeatherVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     @IBOutlet weak var tableView: UITableView!
     
-    var currentWeather = CurrentWeather()
+    var currentWeather : CurrentWeather!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.delegate = self
         tableView.dataSource = self
-        
-//        currentWeather.downloadWeatherDetail
+        currentWeather = CurrentWeather()
+        currentWeather.downloadWeatherDetail {
+            // Setup data to interface from JSON output
+            self.updateUI()
+        }
 
     }
 
@@ -46,6 +49,17 @@ class WeatherVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "weatherCell", for: indexPath)
         
         return cell
+    }
+    
+    func updateUI(){
+        dateLbl.text = currentWeather.date
+        currentTempLbl.text = "\(currentWeather.currentTemp)"
+        print(currentWeather.currentTemp)
+        locationLbl.text = currentWeather.cityName
+        weatherImageView.image = UIImage(named: currentWeather.weatherType)
+        weatherTypeLbl.text = currentWeather.weatherType
+        print(currentWeather.weatherType)
+        
     }
 
 }
