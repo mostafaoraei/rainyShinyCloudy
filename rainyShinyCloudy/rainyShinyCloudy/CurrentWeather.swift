@@ -1,30 +1,28 @@
 //
-//  currentWeather.swift
-//  rainyShinyCloudy
+//  CurrentWeather.swift
+//  rainyshinycloudy
 //
-//  Created by Mostafa Oraei on 4/24/1396 AP.
-//  Copyright © 1396 Mostafa Oraei. All rights reserved.
+//  Created by Caleb Stultz on 7/27/16.
+//  Copyright © 2016 Caleb Stultz. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import Alamofire
 
 class CurrentWeather {
+    var _cityName: String!
+    var _date: String!
+    var _weatherType: String!
+    var _currentTemp: Double!
     
-    var _cityName : String!
-    var _date : String!
-    var _weatherType : String!
-    var _currentTemp : Double!
-    
-    
-    var cityName : String {
+    var cityName: String {
         if _cityName == nil {
             _cityName = ""
         }
         return _cityName
     }
     
-    var date : String {
+    var date: String {
         if _date == nil {
             _date = ""
         }
@@ -32,35 +30,31 @@ class CurrentWeather {
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .long
         dateFormatter.timeStyle = .none
-        
         let currentDate = dateFormatter.string(from: Date())
-        self._date = "Today \(currentDate)"
-        
+        self._date = "Today, \(currentDate)"
         return _date
     }
-
     
-    var weatherType : String {
+    var weatherType: String {
         if _weatherType == nil {
             _weatherType = ""
         }
         return _weatherType
     }
-
-    var currentTemp : Double {
+    
+    var currentTemp: Double {
         if _currentTemp == nil {
             _currentTemp = 0.0
         }
         return _currentTemp
     }
     
-    func downloadWeatherDetail (completed : DownloadCompleted) {
-        // that fucking lesson for me is dont use "" in URL
-        
-        let currentWeatherUrl = URL(string: current_Weather_URL)!
-        Alamofire.request(currentWeatherUrl).responseJSON { response in
+    func downloadWeatherDetails(completed: @escaping DownloadComplete) {
+        //Download Current Weather Data
+        //Two fucking days for that @escaping, motherfucker!
+        Alamofire.request(current_Weather_URL).responseJSON { response in
             let result = response.result
-            print(response)
+            
             if let dict = result.value as? Dictionary<String, AnyObject> {
                 
                 if let name = dict["name"] as? String {
@@ -68,29 +62,42 @@ class CurrentWeather {
                     print(self._cityName)
                 }
                 
-                if let weather = dict["weather"] as? [Dictionary<String, AnyObject>]{
-                    if let main = weather[0]["main"] as? String{
+                if let weather = dict["weather"] as? [Dictionary<String, AnyObject>] {
+                    
+                    if let main = weather[0]["main"] as? String {
                         self._weatherType = main.capitalized
                         print(self._weatherType)
-
                     }
+                    
+                }
                 
-                    if let main = dict["main"] as? Dictionary<String, AnyObject> {
-                        if let currentTemp = main["temp"] as? Double{
-                            let kelvinToCelsius = currentTemp - 273.15
-                            self._currentTemp = kelvinToCelsius
-                            print(self._currentTemp)
-                        }
+                if let main = dict["main"] as? Dictionary<String, AnyObject> {
+                    
+                    if let currentTemperature = main["temp"] as? Double {
+                        
+                        let kelvinToFarenheitPreDivision = (currentTemperature * (9/5) - 459.67)
+                        
+                        let kelvinToFarenheit = Double(round(10 * kelvinToFarenheitPreDivision/10))
+                        
+                        self._currentTemp = kelvinToFarenheit
+                        print(self._currentTemp)
                     }
                 }
             }
+         completed()
         }
-        
-            completed()
+       
     }
-    
-    
-    
-    
-    
 }
+
+
+
+
+
+
+
+
+
+
+
+

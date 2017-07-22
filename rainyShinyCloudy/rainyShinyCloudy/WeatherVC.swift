@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Alamofire
 
 class WeatherVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
@@ -23,20 +24,55 @@ class WeatherVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
     @IBOutlet weak var tableView: UITableView!
     
     var currentWeather : CurrentWeather!
+    var forecast: Forecast!
+    var forecasts = [Forecast]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.delegate = self
         tableView.dataSource = self
+        
+        
         currentWeather = CurrentWeather()
-        currentWeather.downloadWeatherDetail {
-            // Setup data to interface from JSON output
-            self.updateUI()
-        }
+//        forecast = Forecast(weatherDict: <#Dictionary<String, AnyObject>#>)
 
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        currentWeather.downloadWeatherDetails {
+            self.downloadForecastData {
+            self.updateUI()
+            
+            }
+        }
+    }
+    
+    func downloadForecastData(complited: @escaping DownloadComplete) {
+        
+        let forecastURL = URL(string: FORECAST_URL)!
+        Alamofire.request(forecastURL).responseJSON { response in
+            print(response)
+            let result = response.result
+            
+            if let dict = result.value as? Dictionary<String, AnyObject> {
+                
+                if let list = dict["list"] as? [Dictionary<String, AnyObject>] {
+                    
+                    for obj in list {
+                        let forecast = Forecast(weatherDict: obj)
+                        self.forecasts.append(forecast)
+                        print(obj)
+                    }
+                }
+        
+            }
+            complited()
+        }
+    }
+    
+    
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
@@ -51,14 +87,13 @@ class WeatherVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
         return cell
     }
     
-    func updateUI(){
+    func updateUI() {
+        
         dateLbl.text = currentWeather.date
         currentTempLbl.text = "\(currentWeather.currentTemp)"
-        print(currentWeather.currentTemp)
         locationLbl.text = currentWeather.cityName
         weatherImageView.image = UIImage(named: currentWeather.weatherType)
         weatherTypeLbl.text = currentWeather.weatherType
-        print(currentWeather.weatherType)
         
     }
 
