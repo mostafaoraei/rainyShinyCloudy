@@ -8,8 +8,9 @@
 
 import UIKit
 import Alamofire
+import CoreLocation
 
-class WeatherVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class WeatherVC: UIViewController, UITableViewDataSource, UITableViewDelegate, CLLocationManagerDelegate {
 
     @IBOutlet weak var dateLbl: UILabel!
     
@@ -27,26 +28,52 @@ class WeatherVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
     var forecast: Forecast!
     var forecasts = [Forecast]()
     
+    var locationManager = CLLocationManager()
+    var currentLocation: CLLocation!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startMonitoringSignificantLocationChanges()
         
         tableView.delegate = self
         tableView.dataSource = self
         
         
         currentWeather = CurrentWeather()
-//        forecast = Forecast(weatherDict: <#Dictionary<String, AnyObject>#>)
 
+        
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        currentWeather.downloadWeatherDetails {
-            self.downloadForecastData {
-            self.updateUI()
-            
+        
+        locationAuthStatus()
+        
             }
+    
+    func locationAuthStatus() {
+        if CLLocationManager.authorizationStatus() == .authorizedWhenInUse {
+            currentLocation = locationManager.location
+            Location.sharedInstance.latitude = currentLocation.coordinate.latitude
+            Location.sharedInstance.longitude = currentLocation.coordinate.longitude
+            print(Location.sharedInstance.latitude, currentLocation.coordinate.latitude)
+            currentWeather.downloadWeatherDetails {
+                self.downloadForecastData {
+                    self.updateUI()
+                    
+                }
+            }
+
+        } else {
+            locationManager.requestWhenInUseAuthorization()
+            locationAuthStatus()
         }
+        
+        
     }
     
     func downloadForecastData(complited: @escaping DownloadComplete) {
